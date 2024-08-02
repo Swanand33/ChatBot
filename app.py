@@ -1,6 +1,7 @@
-import openai
+from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
 import os
+import openai
 
 # Load environment variables from a .env file
 load_dotenv()
@@ -8,6 +9,8 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 # Set the OpenAI API key
 openai.api_key = OPENAI_API_KEY
+
+app = Flask(__name__)
 
 class ContextualChatbot:
     def __init__(self):
@@ -37,16 +40,17 @@ class ContextualChatbot:
             print(f"An error occurred: {e}")
             return "I'm sorry, but I encountered an error. Please try again."
 
-    def run(self):
-        print("Chatbot: Hello! How can I assist you today?")
-        while True:
-            user_input = input("You: ")
-            if user_input.lower() in ['exit', 'quit', 'bye']:
-                print("Chatbot: Goodbye! Have a great day!")
-                break
-            response = self.generate_response(user_input)
-            print(f"Chatbot: {response}")
+chatbot = ContextualChatbot()
 
-if __name__ == "__main__":
-    chatbot = ContextualChatbot()
-    chatbot.run()
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/ask', methods=['POST'])
+def ask():
+    user_message = request.json['message']
+    response = chatbot.generate_response(user_message)
+    return jsonify({'response': response})
+
+if __name__ == '__main__':
+    app.run(debug=True)
